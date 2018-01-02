@@ -5,19 +5,43 @@ import os.path
 
 ENVIRONMENT_CONFIG_VARIABLE = 'GRADEBOOK_CONFIG'
 DEFAULT_CONFIG_PATH = './config.ini'
+EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'example', 'config.ini')
 
 def load_configuration():
 	logging.basicConfig(level='DEBUG')
 
 	config_path = get_config_path()
-
-	configuration = configparser.ConfigParser(
-		interpolation = configparser.ExtendedInterpolation()
-	)
-	configuration.read(config_path)
+	configuration = load_configuration_from_file(config_path)
+	verify_configuration(configuration)
 
 	set_log_configuration(configuration)
 	apply_configuration_to_globals(configuration)
+
+def load_configuration_from_file(path):
+	configuration = configparser.ConfigParser(
+		interpolation = configparser.ExtendedInterpolation()
+	)
+
+	configuration.read(path)
+
+	return configuration
+	
+def verify_configuration(configuration):
+	'''
+	Ensure that the loaded configuration has all the Paths that are present in
+	the loaded configuration.
+	'''
+	base_configuration = load_configuration_from_file(EXAMPLE_CONFIG_FILE)
+	missing_paths = []
+
+	for key in base_configuration['Paths']:
+		if key not in configuration['Paths']:
+			missing_paths.append(key)
+	
+	if missing_paths:
+		for path in missing_paths:
+			logging.error('Missing Path entry "{}"'.format(path))
+		raise KeyError('Configuration specified missing Paths. Please fix the errors.')
 
 def set_log_configuration(configuration):
 	log_level = configuration['General'].get('log level', None)

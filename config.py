@@ -1,5 +1,65 @@
+import configparser
+import logging
+import os
 import os.path
 
+ENVIRONMENT_CONFIG_VARIABLE = 'GRADEBOOK_CONFIG'
+DEFAULT_CONFIG_PATH = './config.ini'
+
+def load_configuration():
+	logging.basicConfig(level='DEBUG')
+
+	config_path = get_config_path()
+
+	configuration = configparser.ConfigParser(
+		interpolation = configparser.ExtendedInterpolation()
+	)
+	configuration.read(config_path)
+
+	set_log_configuration(configuration)
+	apply_configuration_to_globals(configuration)
+
+def set_log_configuration(configuration):
+	log_level = configuration['General'].get('log level', None)
+
+	if log_level is None:
+		log_level = 'INFO'
+	
+	logging.debug('Setting log level to {}'.format(log_level))
+	
+	logging.basicConfig(level=log_level)
+	
+def get_config_path():
+	'''
+	The file is either specified by the environment variable
+	ENVIRONMENT_CONFIG_VARIABLE, or it is searched for locally by the
+	DEFAULT_CONFIG_PATH. If the file does not exist, an error is thrown.
+	'''
+	config_path = None
+
+	if ENVIRONMENT_CONFIG_VARIABLE in os.environ:
+		config_path = os.environ[ENVIRONMENT_CONFIG_VARIABLE]
+	else:
+		config_path = DEFAULT_CONFIG_PATH
+	
+	config_path = os.path.abspath(config_path)
+
+	if not os.path.exists(config_path):
+		raise FileNotFoundError('Configuration file "{}" does not exist.'.format(config_path)) 
+	
+	return config_path
+
+def apply_configuration_to_globals(configuration):
+	base = configuration['Directory']['Base']
+	paths = configuration['Paths']
+
+	for path_name in paths:
+		new_path = paths[path_name]
+		new_path = os.path.join(base, new_path)
+		new_path = os.path.abspath(new_path)
+		path_name = '{}_PATH'.format(path_name)
+		globals()[path_name.upper()] = new_path
+	
 # The config is split into two parts: the specified and the built. In the specificed configuration, parameter and directory/filename information is provided. Full paths should not be provided in the specified configuration. In the built configuration, the values from the specified configuration are used to generate static filepaths using the build_configuration command.
 
 def add_specific_config(name, value):
@@ -99,6 +159,7 @@ def build_configuration():
 	'''
 	Use the specified configuration to build full paths.
 	'''
+	load_configuration()
 	def real_join(*paths):
 		return os.path.abspath(os.path.join(*paths))
 	

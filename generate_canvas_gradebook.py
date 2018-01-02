@@ -30,7 +30,7 @@ def write_canvas_gradebook(categorized_gradebook):
 	# Keep an order
 	assignments_list = list(canvas_grades.keys())
 
-	with open(config.CANVAS_OUTPUT, 'w') as f:
+	with open(config.OUTPUT_CANVAS_PATH, 'w') as f:
 		writer = csv.writer(f)
 
 		# Write the headers to identify students
@@ -112,7 +112,7 @@ def get_canvas_ids():
 	student_id_dict = dict()
 	assignment_id_dict = dict()
 
-	with open(config.CANVAS_INPUT) as f:
+	with open(config.INPUT_CANVAS_PATH, 'r') as f:
 		reader = csv.DictReader(f)
 		for row in reader:
 			student_id_dict[row['SIS User ID']] = row['ID']
@@ -139,7 +139,7 @@ def get_points_map():
 	'''
 	points_map = dict()
 
-	with open(config.CANVAS_INPUT) as f:
+	with open(config.INPUT_CANVAS_PATH, 'r') as f:
 		reader = csv.reader(f)
 		assignments_row = reader.__next__()
 		points_row = reader.__next__()

@@ -54,7 +54,7 @@ def write_student_scores(categorized_gradebook, extrapolate_category):
 	if extrapolate_category:
 		header.extend(['Min', 'Avg', 'Max'])
 
-	with open(config.AGGREGATE_OUTPUT, 'w') as output:
+	with open(config.OUTPUT_HOKIESPA_PATH, 'w') as output:
 		import csv
 
 		writer = csv.writer(output)
@@ -75,7 +75,6 @@ def write_student_scores(categorized_gradebook, extrapolate_category):
 
 			writer.writerow(data)
 	print('\tDone')
-
 def print_class_scores(categorized_gradebook):
 	'''
 	Unlike the above, which calculates the total grade of individual students,

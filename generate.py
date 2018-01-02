@@ -28,7 +28,7 @@ def generate_attendance_sheet(args):
 	print('Writing attendance sheet to {}')
 	students = sorted(gradebook.get_active_students(), key=lambda s: s.last_name)
 
-	with open(config.ATTENDANCE_SHEET_PATH, 'w') as f:
+	with open(config.OUTPUT_ATTENDANCE_PATH, 'w') as f:
 		writer = csv.writer(f)
 		for student in students:
 			writer.writerow([student.name])

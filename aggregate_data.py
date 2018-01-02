@@ -10,7 +10,9 @@ import config
 import gradebook
 import grading
 
-def add_parser(parser):
+def add_parser(subparsers):
+	parser = subparsers.add_parser('aggregate')
+
 	parser.add_argument('-student', action='store_true', help='Flag to enable further statistics on a single student.')
 	parser.add_argument('-nowrite', action='store_true', help='Flag to disable generation of the aggregate file.')
 	parser.add_argument(
@@ -19,6 +21,7 @@ def add_parser(parser):
 		default=None,
 		help='Flag to enable output columns of maximum minimum and expected grades. The average it taken from the supplied category.',
 	)
+
 	parser.set_defaults(func=aggregate_data)
 
 def aggregate_data(args):

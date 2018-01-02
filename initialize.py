@@ -4,13 +4,14 @@ import csv
 import logging
 import os.path
 
-def add_parser(sub_parser):
-	sub_parser.add_argument('-force',
+def add_parser(subparsers):
+	parser = subparsers.add_parser('init')
+	parser.add_argument('-force',
 		action='store_true',
 		help='Necessary to overwrite roster and attendance data.'
 	)
 
-	sub_parser.set_defaults(func=initialize_gradebook)
+	parser.set_defaults(func=initialize_gradebook)
 
 def initialize_gradebook(args):
 	if not args.force and (os.path.exists(config.ROSTER_PATH) or os.path.exists(config.ATTENDANCE_PATH)):

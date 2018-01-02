@@ -2,7 +2,8 @@ import config
 import gradebook
 import grading
 
-def add_parser(parser):
+def add_parser(subparsers):
+	parser = subparsers.add_parser('qca')
 	parser.add_argument('-verbose', action='store_true', default=False)
 	parser.set_defaults(func=calculate_class_qca)
 

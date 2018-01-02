@@ -3,28 +3,27 @@ import argparse
 import config
 import importlib 
 
+SUB_PROGRAMS = [
+	'aggregate_data',
+	'calculate_qca',
+	'initialize',
+	'generate',
+	'report',
+	'take_attendance',
+	'update_roster',
+]
+
 if __name__ == '__main__':
-	import initialize
-	import generate
-	import aggregate_data
-	import take_attendance
-	import update_roster
-	import calculate_qca
-	import report
+	config.load_configuration()
 
 	parser = argparse.ArgumentParser()
 
 	subparsers = parser.add_subparsers()
-	generate.add_parser(subparsers.add_parser('generate'))
-	aggregate_data.add_parser(subparsers.add_parser('aggregate'))
-	take_attendance.add_parser(subparsers.add_parser('attendance'))
-	update_roster.add_parser(subparsers.add_parser('update'))
-	calculate_qca.add_parser(subparsers.add_parser('qca'))
-	report.add_parser(subparsers.add_parser('report'))
-	initialize.add_parser(subparsers.add_parser('init'))
+	for module_name in SUB_PROGRAMS:
+		module = importlib.import_module(module_name)
+		module.add_parser(subparsers)
 
 	args = parser.parse_args()
-	config.load_configuration()
 
 	f = getattr(args, 'func', None)
 

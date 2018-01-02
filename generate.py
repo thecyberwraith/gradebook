@@ -7,10 +7,13 @@ import generate_canvas_gradebook
 import generate_grade_sheet
 import generate_webassign_roster
 
-def add_parser(parser):
+def add_parser(subparsers):
+	parser = subparsers.add_parser('generate')
+
 	parser.add_argument('item',
 		choices = ['attendance', 'canvas', 'new', 'wa']
 	)
+
 	parser.set_defaults(func=generate_specific)
 
 def generate_specific(args):

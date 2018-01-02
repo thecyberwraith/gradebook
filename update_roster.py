@@ -5,7 +5,8 @@ import config
 import csv
 import gradebook
 
-def add_parser(parser):
+def add_parser(subparsers):
+	parser = subparsers.add_parser('update')
 	parser.add_argument('-missing', default='Dropped', help='How to mark students that are no longer listed.')
 	parser.set_defaults(func=update_roster)
 

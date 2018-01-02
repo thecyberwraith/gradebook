@@ -4,8 +4,11 @@ import csv
 import datetime
 import gradebook
 
-def add_parser(parser):
+def add_parser(subparsers):
+	parser = subparsers.add_parser('attendance')
+
 	parser.add_argument('-date', default=None)
+
 	parser.set_defaults(func=update_attendance)
 
 def get_date(args):

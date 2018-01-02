@@ -3,7 +3,8 @@ from csv_io import write_dataset, load_csv_as_dict
 from gradebook import get_all_students, get_categorized_gradebook
 from grading import calculate_semester_grade, calculate_student_letter_grade
 
-def add_parser(parser):
+def add_parser(subparsers):
+	parser = subparsers.add_parser('report')
 	parser.add_argument('-forcenames', action='store_true')
 	parser.set_defaults(func=build_report)
 

@@ -99,7 +99,7 @@ def find_new_students(new, old):
 
 	returns - list of new students
 	'''
-	
+	# TODO Skipped dropped and withdraws
 	old_students = { s.student_id:s for s in old }
 
 	new_students = []
@@ -133,7 +133,7 @@ def load_hokiespa_roster():
 		'Phone'
 	]
 
-	with open(config.HOKIESPA_INPUT, 'r') as hokiefile:
+	with open(config.INPUT_HOKIESPA_PATH, 'r') as hokiefile:
 		reader = csv.reader(hokiefile)
 
 		students = []

@@ -135,7 +135,7 @@ def parse_webassign(students):
 	
 	# Get the TAB sepearated CSV file
 	wa_contents = []
-	with open(config.WEBASSIGN_INPUT, 'r') as wa_file:
+	with open(config.INPUT_WA_SCORES_PATH, 'r') as wa_file:
 		reader = csv.reader(wa_file, delimiter='\t')
 		for row in reader:
 			wa_contents.append(row)
@@ -242,7 +242,7 @@ def get_all_students():
 	Get all students regardless of status.
 	'''
 	students = None
-	with open(config.ROSTER_PATH) as f:
+	with open(config.ROSTER_PATH, 'r') as f:
 		reader = csv.DictReader(f)
 		
 		students = [Student(s) for s in reader]
@@ -329,24 +329,8 @@ def filter_candidates(candidates, specified_last_name, specified_first_name):
 	
 	return result
 
-def set_configured_values(parser):
-	'''
-	Use the config file to set the properties. This allows us to override the
-	values using the command line.
-	'''
-	for name in config.CONFIG_VARS:
-		parser.add_argument('-'+name.lower(),
-			default=getattr(config, name)
-		)
-
-def get_configured_values(args):
-	'''
-	Take any modified arguments and update the config
-	'''
-	for name in config.CONFIG_VARS:
-		setattr(config, name, getattr(args, name.lower()))
-
 if __name__ == '__main__':
+	import initialize
 	import generate
 	import aggregate_data
 	import take_attendance
@@ -355,7 +339,6 @@ if __name__ == '__main__':
 	import report
 
 	parser = argparse.ArgumentParser()
-	set_configured_values(parser)
 
 	subparsers = parser.add_subparsers()
 	generate.add_parser(subparsers.add_parser('generate'))
@@ -364,10 +347,10 @@ if __name__ == '__main__':
 	update_roster.add_parser(subparsers.add_parser('update'))
 	calculate_qca.add_parser(subparsers.add_parser('qca'))
 	report.add_parser(subparsers.add_parser('report'))
+	initialize.add_parser(subparsers.add_parser('init'))
 
 	args = parser.parse_args()
-	get_configured_values(args)
-	config.build_configuration()
+	config.load_configuration()
 
 	f = getattr(args, 'func', None)
 

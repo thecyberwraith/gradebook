@@ -10,7 +10,7 @@ def generate_roster(args):
 	print('Creating WebAssign roster using saved roster.')
 	students = gradebook.get_active_students()
 
-	with open(config.WEBASSIGN_OUTPUT, 'w') as f:
+	with open(config.OUTPUT_WA_ROSTER_PATH, 'w') as f:
 		writer = csv.writer(f)
 		writer.writerow(['Name', 'Username', 'Email', 'Role'])
 

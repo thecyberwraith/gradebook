@@ -1,40 +1,101 @@
+import configparser
+import logging
+import os
 import os.path
 
-# The config is split into two parts: the specified and the built. In the specificed configuration, parameter and directory/filename information is provided. Full paths should not be provided in the specified configuration. In the built configuration, the values from the specified configuration are used to generate static filepaths using the build_configuration command.
+ENVIRONMENT_CONFIG_VARIABLE = 'GRADEBOOK_CONFIG'
+DEFAULT_CONFIG_PATH = './config.ini'
+EXAMPLE_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'example', 'config.ini')
 
-def add_specific_config(name, value):
-	if not name in globals():
-		globals()[name] = value
-		if name not in CONFIG_VARS:
-			CONFIG_VARS.append(name)
+def load_configuration():
+	logging.basicConfig(level='DEBUG')
 
-### Specified configuration
-CONFIG_VARS = []
+	config_path = get_config_path()
+	configuration = load_configuration_from_file(config_path)
+	verify_configuration(configuration)
 
-# Directories for storing information (unless specified, assume current is base)
-add_specific_config('BASE_DIR', '')
-add_specific_config('OUTPUT_DIR', 'generated')
-add_specific_config('INPUT_DIR', 'input')
-add_specific_config('GRADES_DIR', 'grades')
+	set_log_configuration(configuration)
+	apply_configuration_to_globals(configuration)
 
-# Standard name for program specific data
-add_specific_config('ROSTER_FILENAME', 'ClassRoster.csv')
-add_specific_config('ATTENDANCE_RECORD_FILENAME', 'AttendanceRecord.csv')
+def load_configuration_from_file(path):
+	configuration = configparser.ConfigParser(
+		interpolation = configparser.ExtendedInterpolation()
+	)
 
-# Standard name for outputs
-add_specific_config('ATTENDANCE_SHEET_FILENAME', 'BlankAttendanceSheet.csv')
-add_specific_config('NEW_ITEM_FILENAME', 'NewGradedItem.csv')
-add_specific_config('AGGREGATE_FILENAME', 'student_scores.csv')
-add_specific_config('WA_ROSTER', 'wa_roster.csv')
+	configuration.read(path)
 
-# Standard name for external data sources as inputs
-add_specific_config('WA_FILENAME', 'wa_scores.csv')
-add_specific_config('CANVAS_FILENAME', 'ca.csv')
-add_specific_config('HOKIESPA_INPUT_FILENAME', 'hokiespa_roster.csv')
+	return configuration
+	
+def verify_configuration(configuration):
+	'''
+	Ensure that the loaded configuration has all the Paths that are present in
+	the loaded configuration. Also verify the Directory information.
+	'''
+	base_configuration = load_configuration_from_file(EXAMPLE_CONFIG_FILE)
 
-# Standard name for external data source outputs
-add_specific_config('CANVAS_OUTPUT_FILENAME', 'canvas_upload.csv')
+	verification_sections = ['Paths', 'Directory']
+	missing_paths = {section:list() for section in verification_sections}
 
+	for section in verification_sections:
+		for key in base_configuration[section]:
+			if key not in configuration[section]:
+				missing_paths[section].append(key)
+	
+	if sum(len(missing_paths[section]) for section in missing_paths) > 0:
+		for section in missing_paths:
+			for key in missing_paths[section]:
+				logging.error('Missing {} entry "{}"'.format(section, key))
+		raise KeyError('Configuration missing entries. Please fix the errors.')
+
+def set_log_configuration(configuration):
+	log_level = configuration['General'].get('log level', None)
+
+	if log_level is None:
+		log_level = 'INFO'
+	
+	logging.debug('Setting log level to {}'.format(log_level))
+	
+	logging.basicConfig(level=log_level)
+	
+def get_config_path():
+	'''
+	The file is either specified by the environment variable
+	ENVIRONMENT_CONFIG_VARIABLE, or it is searched for locally by the
+	DEFAULT_CONFIG_PATH. If the file does not exist, an error is thrown.
+	'''
+	config_path = None
+
+	if ENVIRONMENT_CONFIG_VARIABLE in os.environ:
+		config_path = os.environ[ENVIRONMENT_CONFIG_VARIABLE]
+	else:
+		config_path = DEFAULT_CONFIG_PATH
+	
+	config_path = os.path.abspath(config_path)
+
+	if not os.path.exists(config_path):
+		raise FileNotFoundError('Configuration file "{}" does not exist.'.format(config_path)) 
+	
+	return config_path
+
+def apply_configuration_to_globals(configuration):
+	base = configuration['Directory']['Base']
+	paths = configuration['Paths']
+	dirs = configuration['Directory']
+
+	for path_name in paths:
+		new_path = paths[path_name]
+		new_path = os.path.join(base, new_path)
+		new_path = os.path.abspath(new_path)
+		path_name = '{}_PATH'.format(path_name)
+		globals()[path_name.upper()] = new_path
+	
+	for dir_name in dirs:
+		new_dir = dirs[dir_name]
+		new_dir = os.path.join(base, new_dir)
+		new_dir = os.path.abspath(new_dir)
+		dir_name = '{}_DIR'.format(dir_name.upper())
+		globals()[dir_name] = new_dir
+	
 # Grade weights
 # the format for a weight entry should be 
 
@@ -94,28 +155,3 @@ GRADE_CUTOFFS = [
 	('D-', 0.57),
 	('F',  0.00),
 ]
-
-def build_configuration():
-	'''
-	Use the specified configuration to build full paths.
-	'''
-	def real_join(*paths):
-		return os.path.abspath(os.path.join(*paths))
-	
-	globals()['GRADES_DIR'] = real_join(BASE_DIR, GRADES_DIR)
-
-	# Data files
-	globals()['ROSTER_PATH'] = real_join(BASE_DIR, ROSTER_FILENAME)
-	globals()['ATTENDANCE_PATH'] = real_join(BASE_DIR, ATTENDANCE_RECORD_FILENAME)
-
-	# Output files
-	globals()['ATTENDANCE_SHEET_PATH'] = real_join(BASE_DIR, OUTPUT_DIR, ATTENDANCE_SHEET_FILENAME)
-	globals()['NEW_ITEM_PATH'] = real_join(BASE_DIR, OUTPUT_DIR, NEW_ITEM_FILENAME)
-	globals()['AGGREGATE_OUTPUT'] = real_join(BASE_DIR, OUTPUT_DIR, AGGREGATE_FILENAME)
-	globals()['WEBASSIGN_OUTPUT'] = real_join(BASE_DIR, OUTPUT_DIR, WA_ROSTER)
-	globals()['CANVAS_OUTPUT'] = real_join(BASE_DIR, OUTPUT_DIR, CANVAS_OUTPUT_FILENAME)
-
-	# External grade files
-	globals()['CANVAS_INPUT'] = real_join(BASE_DIR, INPUT_DIR, CANVAS_FILENAME)
-	globals()['WEBASSIGN_INPUT'] = real_join(BASE_DIR, INPUT_DIR, WA_FILENAME)
-	globals()['HOKIESPA_INPUT'] = real_join(BASE_DIR, INPUT_DIR, HOKIESPA_INPUT_FILENAME)

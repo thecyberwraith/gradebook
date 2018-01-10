@@ -65,7 +65,7 @@ class StudentYear(StoredEnum):
 		return 'Year'
 
 class StudentName(object):
-	keys = ['Last Name', 'First Name', 'Preferred']
+	keys = ['First Name', 'Last Name', 'Preferred']
 
 	@make_safe
 	def __init__(self, first, last, preferred=None):

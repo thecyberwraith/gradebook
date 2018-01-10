@@ -9,10 +9,7 @@ import csv
 
 def write_dataset(filename, dataset):
 	'''
-	Write the given dataset to the specified filename as a tab delimited CSV
-	file.
-
-	filename - string
+	Write the given dataset to the specified filename as a CSV file.
 	dataset - an iterable of dictionaries, where the keys are the CSV headers
 	'''
 	
@@ -26,6 +23,16 @@ def write_dataset(filename, dataset):
 		writer = csv.DictWriter(csv_file, headers)
 		writer.writeheader()
 		writer.writerows(dataset)
+
+def read_dataset(filename):
+	with open(filename, 'r') as f:
+		reader = csv.DictReader(f)
+		
+		return [datum for datum in reader]
+
+def write_rows(filename, rows):
+	with open(filename, 'w') as csv_file:
+		csv.writer(csv_file).writerows(rows)
 
 def load_csv_as_dict(filename):
 	'''
@@ -42,6 +49,10 @@ def load_csv_as_dict(filename):
 			dictionary[row[0]] = row[1:]
 	
 	return dictionary
+
+def load_rows(filename):
+	with open(filename, 'r') as csv_file:
+		return [row for row in csv.reader(csv_file)]
 
 class SafeDictionary(object):
 	'''

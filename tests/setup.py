@@ -156,13 +156,13 @@ class ConfiguredWithGrades(ConfiguredWithWebAssign):
 		homework = [
 			('Homework 1', [
 					['', 5, 0],
-					['', 6, 7.5],
+					['', 6, 8],
 					['', 7, 10],
 				]
 			),
 			('Homework 2', [
 					['', 5, 0],
-					['', 6, 0],
+					['', 6, 3],
 					['', 7, 10],
 				]
 			),

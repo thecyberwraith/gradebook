@@ -53,6 +53,7 @@ class GradeCategory(object):
 					Assignment(
 						name,
 						students,
+						self._metadata.get_points(name),
 						filepath=assignment_path
 					)
 				)
@@ -75,6 +76,9 @@ class GradeCategory(object):
 	def __iter__(self):
 		for key in sorted(self._assignments.keys()):
 			yield self._assignments[key]
+	
+	def __getitem__(self, assignment):
+		return self._assignments[assignment]
 
 
 class WebAssignCategory(GradeCategory):
@@ -93,6 +97,7 @@ class WebAssignCategory(GradeCategory):
 			self._add_assignment(Assignment(
 				name,
 				students,
+				self._metadata.get_points(name)
 				assignment_map=assignment_map
 			))
 
@@ -164,7 +169,7 @@ class WebAssignCategory(GradeCategory):
 
 
 class Assignment(object):
-	def __init__(self, name, students, filepath=None, assignment_map=None):
+	def __init__(self, name, students, points, filepath=None, assignment_map=None):
 		self._name = name
 		self._grades = dict()
 		if filepath:
@@ -187,12 +192,37 @@ class Assignment(object):
 			else:
 				raise KeyError('{!r} does not have a grade in {.name}'.format(student, self))
 	
+	@staticmethod
+	def text_to_score(data):
+		try:
+			return float(data)
+		except ValueError:
+			return 0.0
+	
 	@property
 	def name(self):
 		return self._name
 	
+	def by_id(self, student_id):
+		for student in self._grades:
+			if student_id == student.student_id:
+				return Assignment.text_to_score(self._grades[student])
+		else:
+			raise KeyError('Student id {} not found in assignment {}'.format(
+				student_id,
+				self.name
+			))
+	
+	def average(self):
+		grades = [self[s] for s in self._grades]
+		return sum(grades) / (1.0*len(grades))
+
+	
 	def __hash__(self):
 		return hash(self.name)
+	
+	def __getitem__(self, student):
+		return self.by_id(student.student_id)
 
 
 class CategoryWeights(object):
@@ -225,6 +255,7 @@ class CategoryMetadata(object):
 	@property
 	def weight(self):
 		return self._data['weight']
+	
 
 def get_all_students():
 	'''

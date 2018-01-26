@@ -59,3 +59,24 @@ class TestGradebook(ConfiguredWithGrades):
 	def test_weight(self):
 		gradebook = Gradebook()
 		self.assertEqual(gradebook.weight, 0.8)
+	
+class TestScores(ConfiguredWithGrades):
+	def setUp(self):
+		super(TestScores, self).setUp()
+		self.gb = Gradebook()
+		self.student = get_active_students()[1]
+
+	def test_assignment_scores_by_id(self):
+		correct_score = 8
+		score = self.gb['Homework']['Homework 1'].by_id(self.student.student_id)
+		self.assertEqual(score, correct_score)
+	
+	def test_assignment_scores_by_student(self):
+		correct_score = 8
+		score = self.gb['Homework']['Homework 1'][self.student]
+		self.assertEqual(score, correct_score)
+	
+	def test_assignment_average(self):
+		correct_average = 0.6
+		average = self.gb['Homework']['Homework 1'].average()
+		self.assertEqual(average, correct_average)

@@ -134,7 +134,7 @@ def parse_webassign(students):
 	# Get the TAB sepearated CSV file
 	wa_contents = []
 	with open(config.INPUT_WA_SCORES_PATH, 'r') as wa_file:
-		reader = csv.reader(wa_file, delimiter='\t')
+		reader = csv.reader(wa_file)
 		for row in reader:
 			wa_contents.append(row)
 	
@@ -156,8 +156,9 @@ def parse_webassign(students):
 	username_to_id = {}
 	for row in scores:
 		wa_username = row[1]
+		prefix = wa_username[:wa_username.find('@')]
 		for student in students:
-			if student.email.startswith(wa_username):
+			if student.email.startswith(prefix):
 				username_to_id[wa_username] = student.student_id
 				break
 		

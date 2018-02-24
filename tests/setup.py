@@ -206,7 +206,7 @@ class ConfiguredWithGrades(ConfiguredWithWebAssign):
 		metaconfig['Meta'] = {}
 		for key in meta:
 			metaconfig['Meta'][key] = str(meta[key])
-		filename = os.path.join(directory, 'meta.ini')
+		filename = os.path.join(directory, 'weights.ini')
 		with open(filename, 'w') as openfile:
 			metaconfig.write(openfile)
 	

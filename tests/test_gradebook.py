@@ -60,6 +60,7 @@ class TestGradebook(ConfiguredWithGrades):
 		gradebook = Gradebook()
 		self.assertEqual(gradebook.weight, 0.8)
 	
+
 class TestScores(ConfiguredWithGrades):
 	def setUp(self):
 		super(TestScores, self).setUp()
@@ -76,7 +77,22 @@ class TestScores(ConfiguredWithGrades):
 		score = self.gb['Homework']['Homework 1'][self.student]
 		self.assertEqual(score, correct_score)
 	
+	def test_assignment_percentage(self):
+		correct = 0.8
+		score = self.gb['Homework']['Homework 1'].get_percentage(self.student)
+		self.assertEqual(score, correct)
+
 	def test_assignment_average(self):
 		correct_average = 0.6
 		average = self.gb['Homework']['Homework 1'].average()
 		self.assertEqual(average, correct_average)
+	
+	def test_category_average_all_students(self):
+		test_average = 0.6
+		average = self.gb['Tests'].average()
+		self.assertEqual(average, test_average)
+	
+	def test_category_average_single_student(self):
+		test_average_student = 0.8
+		average = self.gb['Tests'].single_average(self.student)
+		self.assertEqual(average, test_average_student)

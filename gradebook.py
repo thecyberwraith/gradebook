@@ -6,6 +6,8 @@ import os
 
 from student import *
 
+def average(numbers, scale=1.0):
+	return sum(numbers) / (1.0*len(numbers)) / (1.0*scale)
 
 class Gradebook(object):
 	def __init__(self):
@@ -26,10 +28,6 @@ class Gradebook(object):
 	def _add_category(self, category):
 		self._categories[category.name] = category
 	
-	@property
-	def weight(self):
-		return sum(c.weight for c in self)
-	
 	def __iter__(self):
 		for key in sorted(self._categories.keys()):
 			yield self._categories[key]
@@ -37,12 +35,21 @@ class Gradebook(object):
 	def __getitem__(self, key):
 		return self._categories[key]
 
+	@property
+	def weight(self):
+		return sum(c.weight for c in self)
+	
+	def student_by_id(self, id_val):
+		for student in self._students:
+			if student.student_id == id_val:
+				return student
+	
 
 class GradeCategory(object):
 	def __init__(self, directory, students):
 		self._assignments = dict()
 		basepath = os.path.join(config.GRADES_DIR, directory)
-		self._load_metadata(basepath)
+		self._load_weights(basepath)
 		self._name = directory
 		
 		for assignment_file in os.listdir(basepath):
@@ -53,32 +60,44 @@ class GradeCategory(object):
 					Assignment(
 						name,
 						students,
-						self._metadata.get_points(name),
+						self._weights.get_points(name),
 						filepath=assignment_path
 					)
 				)
 
-	def _load_metadata(self, directory):
-		filepath = os.path.join(directory, 'meta.ini')
-		self._metadata = CategoryMetadata(filepath=filepath)
+	def _load_weights(self, directory):
+		filepath = os.path.join(directory, 'weights.ini')
+		self._weights = CategoryWeightsFactory.from_file(filepath)
 	
 	def _add_assignment(self, assignment):
 		self._assignments[assignment.name] = assignment
 	
-	@property
-	def name(self):
-		return self._name
-	
-	@property
-	def weight(self):
-		return self._metadata.weight
-
 	def __iter__(self):
 		for key in sorted(self._assignments.keys()):
 			yield self._assignments[key]
 	
 	def __getitem__(self, assignment):
 		return self._assignments[assignment]
+
+	@property
+	def name(self):
+		return self._name
+	
+	@property
+	def weight(self):
+		return self._weights.weight
+	
+	def average(self):
+		'''
+		The average over all students. Taken by the average over its
+		assignments.
+		'''
+		assignments = [a.average() for a in self]
+		return average(assignments)
+
+	def single_average(self, student):
+		assignments = [a.get_percentage(student) for a in self]
+		return average(assignments)
 
 
 class WebAssignCategory(GradeCategory):
@@ -90,14 +109,13 @@ class WebAssignCategory(GradeCategory):
 	def _load_assignments(self, students):
 		ordered_assignments, ordered_points, scores = self._dissect_wa_file()
 		username_map = self._parse_username_map(scores, students)
-
-		self._set_metadata(ordered_assignments, ordered_points)
+		self._weights = CategoryWeightsFactory.for_webassign(ordered_assignments, ordered_points)
 
 		for name, assignment_map in self._iterate_assignment_maps(username_map, ordered_assignments, scores):
 			self._add_assignment(Assignment(
 				name,
 				students,
-				self._metadata.get_points(name)
+				self._weights.get_points(name),
 				assignment_map=assignment_map
 			))
 
@@ -161,16 +179,11 @@ class WebAssignCategory(GradeCategory):
 		except ValueError:
 			return 0
 
-	def _set_metadata(self, ordered_assignments, ordered_points):
-		grade_config = config.load_configuration_from_file(config.GRADING_PATH)
-		category_weight = grade_config['General'].getfloat('WebAssignWeight')
-		weight_map = {assignment: points for assignment, points in zip(ordered_assignments, ordered_points)}
-		self._metadata = CategoryWeights(category_weight, weight_map=weight_map)
-
 
 class Assignment(object):
 	def __init__(self, name, students, points, filepath=None, assignment_map=None):
 		self._name = name
+		self._points = points
 		self._grades = dict()
 		if filepath:
 			assignment_map = self._get_assignment_map_from_file(filepath)
@@ -215,47 +228,133 @@ class Assignment(object):
 	
 	def average(self):
 		grades = [self[s] for s in self._grades]
-		return sum(grades) / (1.0*len(grades))
+		return average(grades, scale=self._points)
 
-	
 	def __hash__(self):
 		return hash(self.name)
 	
 	def __getitem__(self, student):
 		return self.by_id(student.student_id)
 
+	def get_percentage(self, student):
+		return self[student] / self._points
+
 
 class CategoryWeights(object):
-	def __init__(self, category_weight, weight_map=None, equal_weight=None):
-		self.weight = category_weight
-		self.weight_map = weight_map
-		self.equal_weight = equal_weight
+	def __init__(self, category_weight, point_map=None, equal_points=None):
+		self._weight = category_weight
+		self._point_map = point_map
+		self._equal_points = equal_points
 
-
-class CategoryMetadata(object):
-	def __init__(self, filepath=None, data=None):
+	def get_points(self, assignment):
 		'''
-		data would be a dictionary like a metadata config file.
+		Given the provided configuration, attempt to parse what the maximal
+		points for this Assignment should be.
 		'''
-		if data is None:
-			data = self._get_data_from_file(filepath)
+		key = assignment.lower()
 
-		self._data = data
-	
-	def _get_data_from_file(self, filepath):
-		parser = configparser.ConfigParser()
-		parser.read(filepath)
-		data = dict()
-		for key in parser['Meta']:
-			data[key] = parser.getfloat('Meta', key)
-		if 'weight' not in data:
-			raise KeyError('Weight not specified in Metadata {}'.format(filepath))
-		return data
+		if self._equal_points is None:
+			if key not in self._point_map:
+				logging.debug(self._point_map)
+				print(self._point_map)
+				raise Exception('Assignment "{}" does not have a weight in its category.'.format(assignment))
+			else:
+				return self._point_map[key]
+		else:
+			return self._equal_points
 	
 	@property
 	def weight(self):
-		return self._data['weight']
-	
+		return self._weight
+
+
+class CategoryWeightsFactory(object):
+	@staticmethod
+	def from_file(filepath):
+		'''
+		Take an ini file that describes the weights for the category and the
+		assignments within.
+		'''
+		section = 'Meta'
+		parser = configparser.ConfigParser()
+		parser.read(filepath)
+		data = dict()
+
+		if section not in parser:
+			print(parser.sections())
+			raise Exception('Weight config {} did not contain a "Meta" section.'.format(filepath))
+
+		for key in parser[section]:
+			data[key] = parser.getfloat(section, key)
+
+		return CategoryWeightsFactory.from_factory_data(data)
+
+	@staticmethod
+	def for_webassign(ordered_assignments, ordered_points):
+		grade_config = config.load_configuration_from_file(config.GRADING_PATH)
+		category_weight = grade_config['General'].getfloat('WebAssignWeight')
+		data = {'weight': category_weight}
+
+		for assignment, points in zip(ordered_assignments, ordered_points):
+			data[assignment.lower()] = points
+
+		return CategoryWeightsFactory.from_factory_data(data)
+
+	@staticmethod
+	def from_factory_data(data):
+		category_weight = CategoryWeightsFactory.parse_category_weight(data)
+		equal_points = CategoryWeightsFactory.parse_equal_points(data)
+		point_map = CategoryWeightsFactory.parse_point_map(data)
+
+		return CategoryWeights(
+			category_weight,
+			point_map=point_map,
+			equal_points=equal_points
+		)
+
+	@staticmethod
+	def parse_category_weight(data):
+		'''
+		Enforce there is a category weight, return the weight, and remove the
+		data from the dictionary.
+		'''
+		key = 'weight'
+		if key not in data:
+			raise KeyError('Category weight not specified in Meta section of {}'.format(filepath))
+		
+		weight = data[key]
+		del data[key]
+
+		return weight
+		
+	@staticmethod
+	def parse_equal_points(data):
+		'''
+		Attempts to find the equal_weights keys, and if present return it. 
+		Otherwise return None. In either case, remove the key.
+		'''
+		key = 'equal points'
+		equal_points = None
+
+		if key in data:
+			equal_points = data[key]
+			del data[key]
+
+		return equal_points
+
+	def parse_point_map(data):
+		point_map = dict()
+
+		reserved_keys = ['equal_points', 'weight']
+		for key in data:
+			if key not in reserved_keys:
+				point_map[key] = data[key]
+
+		if len(point_map) == 0:
+			point_map = None
+
+		return point_map
+
 
 def get_all_students():
 	'''

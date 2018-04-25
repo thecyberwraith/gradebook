@@ -55,7 +55,7 @@ def write_student(writer, student, id_dict, canvas_grades, assignments_list):
 	try:
 		canvas_id = id_dict[student.student_id]
 	except KeyError:
-		print('Unable to find WA id for student {}'.format(student))
+		print('Unable to find Canvas id for student {}'.format(student))
 
 	# idenfification
 	data = [student.last_first_name, canvas_id, student.student_id, student.pid]

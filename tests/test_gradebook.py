@@ -96,3 +96,8 @@ class TestScores(ConfiguredWithGrades):
 		test_average_student = 0.8
 		average = self.gb['Tests'].single_average(self.student)
 		self.assertEqual(average, test_average_student)
+	
+	def test_overall_average_single_student(self):
+		correct = 0.778125
+		average = self.gb.single_average(self.student)
+		self.assertAlmostEqual(correct, average)

@@ -9,6 +9,9 @@ from student import *
 def average(numbers, scale=1.0):
 	return sum(numbers) / (1.0*len(numbers)) / (1.0*scale)
 
+def weighted_average(numbers, weights):
+	return sum(n*w for n,w in zip(numbers, weights)) / (1.0*sum(weights))
+
 class Gradebook(object):
 	def __init__(self):
 		self._categories = dict()
@@ -43,6 +46,14 @@ class Gradebook(object):
 		for student in self._students:
 			if student.student_id == id_val:
 				return student
+	
+	def single_average(self, student):
+		numbers = [c.single_average(student) for c in self]
+		weights = [c.weight for c in self]
+		return weighted_average(numbers, weights)
+	
+	def average(self):
+		return average([self.single_average(s) for s in self._students])
 	
 
 class GradeCategory(object):
@@ -296,7 +307,7 @@ class CategoryWeightsFactory(object):
 		data = {'weight': category_weight}
 
 		for assignment, points in zip(ordered_assignments, ordered_points):
-			data[assignment.lower()] = points
+			data[assignment.lower()] = float(points)
 
 		return CategoryWeightsFactory.from_factory_data(data)
 

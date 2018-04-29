@@ -1,6 +1,7 @@
 import csv
-import config
 import os
+
+import gradebook.config as config
 
 class Student(object):
 	'''

@@ -1,4 +1,4 @@
-import config
+import gradebook.config as config
 
 import csv
 import logging

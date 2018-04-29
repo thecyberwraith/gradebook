@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 import argparse
-import config
 import importlib 
+
+import gradebook.config as config
 
 SUB_PROGRAMS = [
 	'aggregate_data',
@@ -13,6 +14,8 @@ SUB_PROGRAMS = [
 	'update_roster',
 ]
 
+MODULE_PREFIX = 'gradebook.'
+
 if __name__ == '__main__':
 	config.load_configuration()
 
@@ -20,6 +23,7 @@ if __name__ == '__main__':
 
 	subparsers = parser.add_subparsers()
 	for module_name in SUB_PROGRAMS:
+		module_name = MODULE_PREFIX + module_name
 		module = importlib.import_module(module_name)
 		module.add_parser(subparsers)
 

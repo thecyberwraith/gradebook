@@ -1,7 +1,7 @@
-import config
-from csv_io import write_dataset, load_csv_as_dict
-from gradebook import get_all_students, get_categorized_gradebook
-from grading import calculate_semester_grade, calculate_student_letter_grade
+import gradebook.config as gradebook
+from gradebook.csv_io import write_dataset, load_csv_as_dict
+from gradebook.grading import calculate_semester_grade, calculate_student_letter_grade
+from gradebook.gradebook import get_all_students, get_categorized_gradebook
 
 def add_parser(subparsers):
 	parser = subparsers.add_parser('report')

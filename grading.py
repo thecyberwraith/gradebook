@@ -4,7 +4,7 @@ module grading
 Implements methods that calculate a student's average for the course and can
 extrapolate from there.
 '''
-import config
+import gradebook.config as config
 
 def calculate_semester_grade(student, gradebook):
 	'''

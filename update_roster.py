@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
 # Takes a spreadsheet with the current students and modifies the roster
-import config
+import gradebook.config as config
 import csv
-import gradebook
+import gradebook.gradebook as gradebook
 
 def add_parser(subparsers):
 	parser = subparsers.add_parser('update')

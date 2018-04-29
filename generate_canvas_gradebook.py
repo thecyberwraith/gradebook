@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-import config
-import gradebook
+import gradebook.config as config
+import gradebook.gradebook as gradebook
 
 import argparse
 import csv

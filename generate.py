@@ -1,11 +1,11 @@
 #!/usr/bin/python3
-import config
+import gradebook.config as config
 import csv
-import gradebook
+import gradebook.gradebook as gradebook
 
-import generate_canvas_gradebook
-import generate_grade_sheet
-import generate_webassign_roster
+import gradebook.generate_canvas_gradebook as generate_canvas_gradebook
+import gradebook.generate_grade_sheet as generate_canvas_gradebook
+import gradebook.generate_webassign_roster as generate_canvas_gradebook
 
 def add_parser(subparsers):
 	parser = subparsers.add_parser('generate')

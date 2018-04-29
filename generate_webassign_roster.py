@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 import argparse
-import config
 import csv
-import gradebook
 import os
+import gradebook.config as config
+import gradebook.gradebook as gradebook
 
 def generate_roster(args):
 	print('Creating WebAssign roster using saved roster.')

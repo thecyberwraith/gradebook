@@ -4,10 +4,11 @@
 # students.
 
 import argparse
-import config
 import csv
-import gradebook
 import os
+
+import gradebook.config as config
+import gradebook.gradebook as gradebook
 
 def generate_new_graded_item():
 	students = gradebook.get_active_students()

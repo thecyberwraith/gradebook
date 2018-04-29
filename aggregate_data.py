@@ -6,9 +6,9 @@ Provide course statistics with the provided data (including WebAssign data). An
 aggregate csv file is provided with the students' current scores, as well as
 aggregate assignment data printed to the screen.
 '''
-import config
-import gradebook
-import grading
+import gradebook.config as config
+import gradebook.gradebook as gradebook
+import gradebook.grading as grading
 
 def add_parser(subparsers):
 	parser = subparsers.add_parser('aggregate')

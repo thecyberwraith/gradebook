@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-import config
 import csv
 import datetime
-import gradebook
+import gradebook.config as config
+import gradebook.gradebook as gradebook
 
 def add_parser(subparsers):
 	parser = subparsers.add_parser('attendance')

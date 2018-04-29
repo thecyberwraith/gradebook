@@ -1,6 +1,6 @@
-import config
-import gradebook
-import grading
+import gradebook.config as config
+import gradebook.gradebook as gradebook
+import gradebook.grading as grading
 
 def add_parser(subparsers):
 	parser = subparsers.add_parser('qca')

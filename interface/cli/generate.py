@@ -3,9 +3,9 @@ import gradebook.config as config
 import csv
 import gradebook.gradebook as gradebook
 
-import gradebook.generate_canvas_gradebook as generate_canvas_gradebook
-import gradebook.generate_grade_sheet as generate_canvas_gradebook
-import gradebook.generate_webassign_roster as generate_canvas_gradebook
+import gradebook.interface.cli.generate_canvas_gradebook as generate_canvas_gradebook
+import gradebook.interface.cli.generate_grade_sheet as generate_canvas_gradebook
+import gradebook.interface.cli.generate_webassign_roster as generate_canvas_gradebook
 
 def add_parser(subparsers):
 	parser = subparsers.add_parser('generate')

@@ -14,7 +14,7 @@ SUB_PROGRAMS = [
 	'update_roster',
 ]
 
-MODULE_PREFIX = 'gradebook.'
+MODULE_PREFIX = 'gradebook.interface.cli.'
 
 if __name__ == '__main__':
 	config.load_configuration()

@@ -6,44 +6,51 @@ Provide course statistics with the provided data (including WebAssign data). An
 aggregate csv file is provided with the students' current scores, as well as
 aggregate assignment data printed to the screen.
 '''
+from gradebook.interface.cli.subprogram import SubProgram
+
 import gradebook.config as config
 import gradebook.gradebook as gradebook
 import gradebook.grading as grading
 
-def add_parser(subparsers):
-	parser = subparsers.add_parser('aggregate')
 
-	parser.add_argument('-student', action='store_true', help='Flag to enable further statistics on a single student.')
-	parser.add_argument('-nowrite', action='store_true', help='Flag to disable generation of the aggregate file.')
-	parser.add_argument(
-		'-extrapolate',
-		dest='category',
-		default=None,
-		help='Flag to enable output columns of maximum minimum and expected grades. The average it taken from the supplied category.',
-	)
+class AggregateSubProgram(SubProgram):
+	'''
+	Create Reports about the students' average scores.
+	'''
 
-	parser.set_defaults(func=aggregate_data)
+	@property
+	def name(self):
+		return 'aggregate'
+	
+	def apply_options(self, parser):
+		parser.add_argument('-student', action='store_true', help='Flag to enable further statistics on a single student.')
+		parser.add_argument('-nowrite', action='store_true', help='Flag to disable generation of the aggregate file.')
+		parser.add_argument(
+			'-extrapolate',
+			dest='category',
+			default=None,
+			help='Flag to enable output columns of maximum minimum and expected grades. The average it taken from the supplied category.',
+		)
 
-def aggregate_data(args):
+	def on_run(self, args):
+		# Aggregate all the scores to a single gradebook
+		categorized_gradebook = gradebook.get_categorized_gradebook()
 
-	# Aggregate all the scores to a single gradebook
-	categorized_gradebook = gradebook.get_categorized_gradebook()
+		if args.category and not args.category in categorized_gradebook:
+			print('Catetory "{}" is not in the gradebook.'.format(args.category))
+			exit()
 
-	if args.category and not args.category in categorized_gradebook:
-		print('Catetory "{}" is not in the gradebook.'.format(args.category))
-		exit()
+		# Ensure there is a scoring available
+		grading.verify_gradebook_weights(categorized_gradebook)
 
-	# Ensure there is a scoring available
-	grading.verify_gradebook_weights(categorized_gradebook)
+		# Report statistics from the gradebook
+		if not args.nowrite:
+			write_student_scores(categorized_gradebook, args.category)
 
-	# Report statistics from the gradebook
-	if not args.nowrite:
-		write_student_scores(categorized_gradebook, args.category)
+		print_class_scores(categorized_gradebook)
 
-	print_class_scores(categorized_gradebook)
-
-	if args.student:
-		print_individual_student_scores(categorized_gradebook)
+		if args.student:
+			print_individual_student_scores(categorized_gradebook)
 
 def write_student_scores(categorized_gradebook, extrapolate_category):
 	'''

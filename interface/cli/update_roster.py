@@ -5,26 +5,32 @@ import gradebook.config as config
 import csv
 import gradebook.gradebook as gradebook
 
-def add_parser(subparsers):
-	parser = subparsers.add_parser('update')
-	parser.add_argument('-missing', default='Dropped', help='How to mark students that are no longer listed.')
-	parser.set_defaults(func=update_roster)
+from gradebook.interface.cli.subprogram import SubProgram
 
-def update_roster(args):
-	'''
-	Compare the current students in the file with the available roster.
-	'''
-	updated_roster = load_hokiespa_roster()
-	current_roster = gradebook.get_all_students()
+
+class UpdateRosterSubProgram(SubProgram):
+	@property
+	def name(self):
+		return 'update'
 	
-	inactive_students = find_newly_inactive_students(updated_roster, current_roster)
-	new_students = find_new_students(updated_roster, current_roster)
+	def apply_options(self, parser):
+		parser.add_argument('-missing', default='Dropped', help='How to mark students that are no longer listed.')
+	
+	def on_run(self, args):
+		'''
+		Compare the current students in the file with the available roster.
+		'''
+		updated_roster = load_hokiespa_roster()
+		current_roster = gradebook.get_all_students()
+		
+		inactive_students = find_newly_inactive_students(updated_roster, current_roster)
+		new_students = find_new_students(updated_roster, current_roster)
 
-	if (inactive_students or new_students) and confirm_update(inactive_students, new_students):
-		commit_update(current_roster, inactive_students, new_students, args.missing)
-		print('Changes saved to class roster.')
-	else:
-		print('No changes were applied to the roster.')
+		if (inactive_students or new_students) and confirm_update(inactive_students, new_students):
+			commit_update(current_roster, inactive_students, new_students, args.missing)
+			print('Changes saved to class roster.')
+		else:
+			print('No changes were applied to the roster.')
 
 def commit_update(current_roster, inactive_students, new_students, missing_status):
 	'''

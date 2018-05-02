@@ -4,47 +4,48 @@ import datetime
 import gradebook.config as config
 import gradebook.gradebook as gradebook
 
-def add_parser(subparsers):
-	parser = subparsers.add_parser('attendance')
+from gradebook.interface.cli.subprogram import SubProgram
 
-	parser.add_argument('-date', default=None)
 
-	parser.set_defaults(func=update_attendance)
+class AttendanceSubProgram(SubProgram):
+	@property
+	def name(self):
+		return 'attendance'
+	
+	def apply_options(self, parser):
+		parser.add_argument('-date', default=None)
+
+	def on_run(self, args):
+		record = load_record()
+		date = get_date(args)
+
+		print('Marking record for {}'.format(date))
+
+		if date_recorded_before(record, date):
+			response = input('Date has been use to record. Continue? (Y/N) ')
+			if response.lower() != 'y':
+				print('Aborted')
+				return
+		
+		students_to_mark = get_absent_students()
+
+		# Verify these are the students
+		print('\nStudents to mark as late on {}'.format(date))
+		for student in students_to_mark:
+			print('\t{}'.format(student.last_first_name))
+		
+		if input('Do you want to commit these absenses? (Y/N) ').lower() != 'y':
+			print('Aborted')
+			return
+		
+		update_record(record, students_to_mark, date)
+		save_record(record)
 
 def get_date(args):
 	if args.date is None:
 		return datetime.datetime.now().date().isoformat()
 	else:
 		return args.date
-
-def update_attendance(args):
-	'''
-	The entry point.
-	'''
-	record = load_record()
-	date = get_date(args)
-
-	print('Marking record for {}'.format(date))
-
-	if date_recorded_before(record, date):
-		response = input('Date has been use to record. Continue? (Y/N) ')
-		if response.lower() != 'y':
-			print('Aborted')
-			return
-	
-	students_to_mark = get_absent_students()
-
-	# Verify these are the students
-	print('\nStudents to mark as late on {}'.format(date))
-	for student in students_to_mark:
-		print('\t{}'.format(student.last_first_name))
-	
-	if input('Do you want to commit these absenses? (Y/N) ').lower() != 'y':
-		print('Aborted')
-		return
-	
-	update_record(record, students_to_mark, date)
-	save_record(record)
 
 def load_record():
 	'''

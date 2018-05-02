@@ -2,30 +2,35 @@ import gradebook.config as config
 import gradebook.gradebook as gradebook
 import gradebook.grading as grading
 
-def add_parser(subparsers):
-	parser = subparsers.add_parser('qca')
-	parser.add_argument('-verbose', action='store_true', default=False)
-	parser.set_defaults(func=calculate_class_qca)
+from gradebook.interface.cli.subprogram import SubProgram
 
-def calculate_class_qca(args):
-	print('Working on it.')
-	student_grades = gradebook.get_categorized_gradebook()
-
-	grades = []
-	letter_grades = []
-
-	for student in gradebook.get_active_students():
-		grade = grading.calculate_semester_grade(student, student_grades)
-		letter = grading.calculate_student_letter_grade(student, student_grades)
-		grades.append(grade)
-		letter_grades.append(letter)
+class QCASubProgram(SubProgram):
+	@property
+	def name(self):
+		return 'qca'
 	
-	scores = [config.QCA_VALUES[letter] for letter in letter_grades]
+	def apply_options(self, parser):
+		parser.add_argument('-verbose', action='store_true', default=False)
 
-	print('Class QCA: {:.3f}'.format(sum(scores)/len(scores)))
+	def on_run(args):
+		print('Working on it.')
+		student_grades = gradebook.get_categorized_gradebook()
 
-	if args.verbose:
-		show_verbose_qca_statistics(grades, letter_grades)
+		grades = []
+		letter_grades = []
+
+		for student in gradebook.get_active_students():
+			grade = grading.calculate_semester_grade(student, student_grades)
+			letter = grading.calculate_student_letter_grade(student, student_grades)
+			grades.append(grade)
+			letter_grades.append(letter)
+		
+		scores = [config.QCA_VALUES[letter] for letter in letter_grades]
+
+		print('Class QCA: {:.3f}'.format(sum(scores)/len(scores)))
+
+		if args.verbose:
+			show_verbose_qca_statistics(grades, letter_grades)
 
 def show_verbose_qca_statistics(scores, letter_grades):
 	'''

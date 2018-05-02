@@ -3,26 +3,32 @@ from gradebook.csv_io import write_dataset, load_csv_as_dict
 from gradebook.grading import calculate_semester_grade, calculate_student_letter_grade
 from gradebook.gradebook import get_all_students, get_categorized_gradebook
 
-def add_parser(subparsers):
-	parser = subparsers.add_parser('report')
-	parser.add_argument('-forcenames', action='store_true')
-	parser.set_defaults(func=build_report)
+from gradebook.interface.cli.subprogram import SubProgram
 
-def build_report(args):
-	students = get_all_students()
-	students = list(filter(lambda x: x.status in ['Active', 'Withdrawn'], students))
 
-	gradebook = get_categorized_gradebook()
-	attendance_record = get_attendance_record()
-
-	dataset = []
-
-	for student in students:
-		dataset.append(gather_report_data(student, gradebook, attendance_record, args.forcenames))
+class MathDepartmentReportSubProgram(SubProgram):
+	@property
+	def name(self):
+		return 'report'
 	
-	sorted_dataset = sort_dataset_with_scores(dataset)
+	def apply_options(self, parser):
+		parser.add_argument('-forcenames', action='store_true')
 
-	write_dataset('generated/report.csv', sorted_dataset)
+	def on_run(self, args):
+		students = get_all_students()
+		students = list(filter(lambda x: x.status in ['Active', 'Withdrawn'], students))
+
+		gradebook = get_categorized_gradebook()
+		attendance_record = get_attendance_record()
+
+		dataset = []
+
+		for student in students:
+			dataset.append(gather_report_data(student, gradebook, attendance_record, args.forcenames))
+		
+		sorted_dataset = sort_dataset_with_scores(dataset)
+
+		write_dataset('generated/report.csv', sorted_dataset)
 
 def gather_report_data(student, gradebook, attendance_record, include_name):
 	student_data = dict()

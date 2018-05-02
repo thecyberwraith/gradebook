@@ -15,7 +15,7 @@ class AttendanceSubProgram(SubProgram):
 	def apply_options(self, parser):
 		parser.add_argument('-date', default=None)
 
-	def on_run(self, args):
+	def on_run(self, args, dependencies):
 		record = load_record()
 		date = get_date(args)
 

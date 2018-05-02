@@ -20,7 +20,7 @@ class GenerateProgram(SubProgram):
 			choices = ['attendance', 'canvas', 'new', 'wa']
 		)
 
-	def on_run(self, args):
+	def on_run(self, args, dependencies):
 		print('Performing generation of type {}'.format(args.item))
 		if args.item == 'attendance':
 			generate_attendance_sheet(args)

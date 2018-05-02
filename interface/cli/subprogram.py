@@ -26,7 +26,7 @@ class SubProgram(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def on_run(self, arguments):
+	def on_run(self, arguments, dependencies):
 		'''
 		Method to run if this subprogram is specified.
 		'''

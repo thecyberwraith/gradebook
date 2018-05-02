@@ -16,7 +16,7 @@ class UpdateRosterSubProgram(SubProgram):
 	def apply_options(self, parser):
 		parser.add_argument('-missing', default='Dropped', help='How to mark students that are no longer listed.')
 	
-	def on_run(self, args):
+	def on_run(self, args, dependencies):
 		'''
 		Compare the current students in the file with the available roster.
 		'''

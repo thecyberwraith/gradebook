@@ -14,7 +14,7 @@ class MathDepartmentReportSubProgram(SubProgram):
 	def apply_options(self, parser):
 		parser.add_argument('-forcenames', action='store_true')
 
-	def on_run(self, args):
+	def on_run(self, args, dependencies):
 		students = get_all_students()
 		students = list(filter(lambda x: x.status in ['Active', 'Withdrawn'], students))
 

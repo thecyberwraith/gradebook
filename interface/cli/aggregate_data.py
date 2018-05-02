@@ -32,7 +32,7 @@ class AggregateSubProgram(SubProgram):
 			help='Flag to enable output columns of maximum minimum and expected grades. The average it taken from the supplied category.',
 		)
 
-	def on_run(self, args):
+	def on_run(self, args, dependencies):
 		# Aggregate all the scores to a single gradebook
 		categorized_gradebook = gradebook.get_categorized_gradebook()
 

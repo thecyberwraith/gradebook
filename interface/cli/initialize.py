@@ -18,7 +18,7 @@ class InitializationSubProgram(SubProgram):
 			help='Necessary to overwrite roster and attendance data.'
 		)
 	
-	def on_run(self, args):
+	def on_run(self, args, dependencies):
 		if not args.force and (os.path.exists(config.ROSTER_PATH) or os.path.exists(config.ATTENDANCE_PATH)):
 			logging.warn('Must specify -force to override previous roster and attendance data.')
 			return

@@ -29,7 +29,7 @@ class Program(object):
 	RUNNABLE_KEY = 'func'
 
 	def run(self):
-		config.load_configuration()
+		dependencies = self.fetch_dependencies()
 
 		SUB_PROGRAMS = [
 			'aggregate_data',
@@ -42,14 +42,28 @@ class Program(object):
 		]
 
 		parser = self.create_parser()
-		args = parser.parse_args()
+		arguments = parser.parse_args()
 
-		runnable = getattr(args, Program.RUNNABLE_KEY, None)
+		runnable = getattr(arguments, Program.RUNNABLE_KEY, None)
 
 		if runnable is None:
 			print('No target sub_program selected.')
 		else:
-			runnable(args)
+			runnable(arguments, dependencies)
+	
+	def fetch_dependencies(self):
+		'''
+		This is the analog of the Main method in clean architecture. All
+		dependencies are specified at this point of the CLI interface. This
+		dependency bundle can then be passed to subprograms for use in
+		interfacing with external modules.
+		'''
+		config.load_configuration()
+
+		dependencies = object()
+		dependencies.hokiespa_roster_repository = None
+
+		return dependencies
 
 	def create_parser(self):
 		'''

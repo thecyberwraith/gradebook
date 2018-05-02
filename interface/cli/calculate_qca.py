@@ -12,7 +12,7 @@ class QCASubProgram(SubProgram):
 	def apply_options(self, parser):
 		parser.add_argument('-verbose', action='store_true', default=False)
 
-	def on_run(args):
+	def on_run(args, dependencies):
 		print('Working on it.')
 		student_grades = gradebook.get_categorized_gradebook()
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import argparse
+from types import SimpleNamespace
 
 import gradebook.config as config
 
@@ -11,6 +12,7 @@ from gradebook.interface.cli.report import MathDepartmentReportSubProgram
 from gradebook.interface.cli.take_attendance import AttendanceSubProgram
 from gradebook.interface.cli.update_roster import UpdateRosterSubProgram
 
+from gradebook.dependencies.loader import DependencyLoader
 
 class Program(object):
 	'''
@@ -29,7 +31,7 @@ class Program(object):
 	RUNNABLE_KEY = 'func'
 
 	def run(self):
-		dependencies = self.fetch_dependencies()
+		self.fetch_dependencies()
 
 		SUB_PROGRAMS = [
 			'aggregate_data',
@@ -49,7 +51,7 @@ class Program(object):
 		if runnable is None:
 			print('No target sub_program selected.')
 		else:
-			runnable(arguments, dependencies)
+			runnable(arguments, self.dependencies)
 	
 	def fetch_dependencies(self):
 		'''
@@ -58,12 +60,30 @@ class Program(object):
 		dependency bundle can then be passed to subprograms for use in
 		interfacing with external modules.
 		'''
-		config.load_configuration()
+		configuration = config.load_configuration()
 
-		dependencies = object()
-		dependencies.hokiespa_roster_repository = None
+		self.dependencies = SimpleNamespace()
 
-		return dependencies
+		dependency_sections = [
+			('hokiespa_repository', 'HokieSpa'),
+		]
+		for var_name, section in dependency_sections:
+			self.get_dependency_from_section(
+				var_name,
+				section,
+				configuration
+			)
+
+	def get_dependency_from_section(self, dependency_name, section_name, configuration):
+		initializer = configuration[section_name]
+		class_string = initializer['classname']
+		del initializer['classname']
+		loader = DependencyLoader(class_string, initializer)
+		setattr(
+			self.dependencies,
+			dependency_name,
+			loader.build_instance()
+		)
 
 	def create_parser(self):
 		'''

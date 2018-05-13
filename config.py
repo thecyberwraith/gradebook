@@ -17,6 +17,8 @@ def load_configuration():
 	set_log_configuration(configuration)
 	apply_configuration_to_globals(configuration)
 
+	return configuration
+
 def load_configuration_from_file(path):
 	configuration = configparser.ConfigParser(
 		interpolation = configparser.ExtendedInterpolation()
